@@ -10,6 +10,6 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /usr/src/app/ -ldflags="-w
 
 FROM scratch
 WORKDIR /app
-COPY --from=builder /usr/src/app/main /usr/local/bin/
+COPY --from=builder /usr/src/app/ollama-copilot /usr/local/bin/
 
-CMD ["main"]
+CMD ["ollama-copilot"]
