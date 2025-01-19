@@ -1,0 +1,56 @@
+name: Go
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.22
+
+    - name: Test
+      run: go test -v ./...
+
+    - name: Build linux64
+      run: GOOS=linux GOARCH=amd64 go build -o ollama-copilot-linux-amd64 -v ./...
+
+    - name: Build darwin64
+      run: GOOS=darwin GOARCH=amd64 go build -o ollama-copilot-darwin-amd64 -v ./...
+
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: ollama-copilot-linux-amd64
+        path: ollama-copilot-linux-amd64
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: ollama-copilot-darwin-amd64
+        path: ollama-copilot-darwin-amd64
+
+  push_to_registry:
+    name: Push Docker image to GitHub Packages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+
+      - name: Push to GitHub Packages
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: jwoglom/ollama-copilot/ollama-copilot
+          tag_with_ref: true
+    
